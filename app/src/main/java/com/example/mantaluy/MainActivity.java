@@ -3,10 +3,8 @@ package com.example.mantaluy;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,7 +14,7 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button button;
+    Button EnterBtn;
     ImageView iv;
     int level = 1 , counter = 0;
     EditText et;
@@ -24,23 +22,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     boolean haveAWord = false;
     LinearLayout layout;
     LinearLayout.LayoutParams layoutParams;
-
+    TextView[] lines = new TextView[10];
+    TextView victoryText;
+    int victory = 0;
+    Button RestartBtn;
+    TextView lettersStorage;
+    String lettersUsed = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        layoutParams = new LinearLayout.LayoutParams(100, 100);
+        layoutParams = new LinearLayout.LayoutParams(50, 100);
         layout = (LinearLayout)findViewById(R.id.layout);
-        button = findViewById(R.id.button);
+        EnterBtn = findViewById(R.id.button);
         iv = findViewById(R.id.imageView);
         et = findViewById(R.id.editText);
-        button.setOnClickListener(this);
+        lettersStorage = findViewById(R.id.lettersStorage);
+        victoryText = findViewById(R.id.victoryText);
+        RestartBtn = findViewById(R.id.RestartButton);
+        RestartBtn.setVisibility(View.INVISIBLE);
+        EnterBtn.setOnClickListener(this);
+        RestartBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-        if(v==button){
+        if(v== EnterBtn){
             View view = this.getCurrentFocus();
             if (view != null) {
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -51,19 +59,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 word = et.getText().toString();
                 et.setHint("write your guess");
                 haveAWord = true;
-                for (int i = 0; i < word.length(); i++) {
-
-                    TextView line = new TextView(this);
-                    line.setLayoutParams(layoutParams);
-                    line.setText("___");
-                    layout.addView(line);
+                for (int i = word.length() -1; i >= 0; i--) {
+                    lines[i] = new TextView(this);
+                    lines[i].setLayoutParams(layoutParams);
+                    lines[i].setText("___");
+                    lines[i].setTextSize(20);
+                    layout.addView(lines[i]);
                     et.setText("");
                 }
             }
-            else if(haveAWord && et.getText()!=null){
+            else if(haveAWord && !et.getText().toString().equals("")){
+                lettersUsed += et.getText().charAt(0) + ", ";
+                lettersStorage.setText(lettersUsed);
                 for(int i = 0; i < word.length(); i++){
                     if(word.charAt(i) == et.getText().charAt(0)){
+                        victory = 0;
                         counter++;
+                        lines[i].setText(et.getText().toString());
+                        for(int j = 0; j < word.length(); j++){
+                            if(lines[j].getText().toString() == "___"){
+                                victory++;
+                            }
+                        }
+                        if(victory == 0){
+                            victoryText.setText("you won!!!!!");
+                            RestartBtn.setVisibility(View.VISIBLE);
+                            et.setEnabled(false);
+                            EnterBtn.setEnabled(false);
+                        }
                     }
                 }
                 if(counter == 0) {
@@ -93,13 +116,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             level++;
                             break;
                         case 7:
-                            iv.setImageResource(R.drawable.level1);
-                            level = 1;
+                            victoryText.setText("you loser!!!!!");
+                            RestartBtn.setVisibility(View.VISIBLE);
+                            et.setEnabled(false);
+                            EnterBtn.setEnabled(false);
                             break;
                     }
-                    et.setText("");
                 }
+                et.setText("");
+                counter = 0;
             }
+        }
+        if(v==RestartBtn){
+            for(int i = 0; i < lines.length; i++){
+                lines[i] = null;
+                layout.removeAllViews();
+            }
+                victoryText.setText("Man Taluy!!!");
+                RestartBtn.setVisibility(View.INVISIBLE);
+                et.setHint("write a word");
+                haveAWord = false;
+                iv.setImageResource(R.drawable.level1);
+                level = 1;
+                victory = 0;
+                et.setEnabled(true);
+                EnterBtn.setEnabled(true);
+                lettersUsed = "";
+                lettersStorage.setText(lettersUsed);
         }
     }
 }
